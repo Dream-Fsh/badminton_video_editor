@@ -21,6 +21,7 @@ config/system_settings.json
 06_docs/*.doc
 06_docs/*.docx
 06_docs/*.pdf
+06_docs/教的材料/
 04_output/答辩问题回答.md
 
 # ========== 临时/解包文件 ==========
