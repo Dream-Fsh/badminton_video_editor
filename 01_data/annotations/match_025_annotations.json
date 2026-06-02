@@ -1,0 +1,23 @@
+{
+  "video_name": "match_025",
+  "total_frames": 1128,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 311,
+      "end_frame": 331,
+      "description": "第25回合发球",
+      "notes": "部分遮挡，但可见击球动作"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 915,
+      "end_frame": 935,
+      "description": "第25回合球落地",
+      "notes": "球速过快落地，但可见球落地"
+    }
+  ]
+}

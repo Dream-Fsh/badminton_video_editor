@@ -1,0 +1,22 @@
+{
+  "video_name": "match_027",
+  "total_frames": 1341,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 191,
+      "end_frame": 211,
+      "description": "第27回合发球",
+      "notes": "正手发球，网前球"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 1193,
+      "end_frame": 1213,
+      "description": "第27回合球落地"
+    }
+  ]
+}

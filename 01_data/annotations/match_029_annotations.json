@@ -1,0 +1,22 @@
+{
+  "video_name": "match_029",
+  "total_frames": 912,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 185,
+      "end_frame": 205,
+      "description": "第29回合发球",
+      "notes": "正手发球，网前球"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 784,
+      "end_frame": 804,
+      "description": "第29回合球落地"
+    }
+  ]
+}

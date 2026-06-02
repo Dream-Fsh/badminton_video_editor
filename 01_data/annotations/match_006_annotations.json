@@ -1,0 +1,26 @@
+{
+  "video_name": "match_006",
+  "total_frames": 1021,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 232,
+      "end_frame": 252,
+      "description": "第6回合发球",
+      "notes": "正手发球，网前球",
+      "difficulty": "easy"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 815,
+      "end_frame": 835,
+      "description": "第6回合球落地",
+      "notes": "部分遮挡，但球落地",
+      "quality": "fair"
+
+    }
+  ]
+}

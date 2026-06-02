@@ -1,0 +1,23 @@
+{
+  "video_name": "match_001",
+  "total_frames": 331,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 96,
+      "end_frame": 115,
+      "description": "第1回合发球",
+      "notes": "正手发球，网前球",
+      "difficulty": "easy"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 290,
+      "end_frame": 300,
+      "description": "第1回合球落地"
+    }
+  ]
+}

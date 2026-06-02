@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理 - 羽毛球视频智能剪辑系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-item.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="flex">
+        <!-- 侧边栏 -->
+        <aside class="fixed left-0 top-0 h-full w-64 gradient-bg text-white shadow-xl z-50">
+            <!-- Logo -->
+            <div class="p-6 border-b border-white border-opacity-20">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-video text-green-500"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg">管理系统</h1>
+                        <p class="text-xs text-white text-opacity-70">Admin Dashboard</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 用户信息 -->
+            <div class="p-4 border-b border-white border-opacity-20">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="font-medium" id="sidebarUsername">Admin</p>
+                        <p class="text-xs text-white text-opacity-70">
+                            <span id="sidebarRole">管理员</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 导航菜单 -->
+            <nav class="p-4 space-y-2">
+                <a href="#" onclick="showSection('dashboard')" class="sidebar-item active flex items-center px-4 py-3 rounded-lg transition-all" data-section="dashboard">
+                    <i class="fas fa-chart-line w-6"></i>
+                    <span class="ml-3">控制台</span>
+                </a>
+                <a href="#" onclick="showSection('users')" class="sidebar-item flex items-center px-4 py-3 rounded-lg transition-all" data-section="users">
+                    <i class="fas fa-users w-6"></i>
+                    <span class="ml-3">用户管理</span>
+                </a>
+                <a href="#" onclick="showSection('logs')" class="sidebar-item flex items-center px-4 py-3 rounded-lg transition-all" data-section="logs">
+                    <i class="fas fa-history w-6"></i>
+                    <span class="ml-3">操作日志</span>
+                </a>
+                <a href="#" onclick="showSection('settings')" class="sidebar-item flex items-center px-4 py-3 rounded-lg transition-all" data-section="settings">
+                    <i class="fas fa-cog w-6"></i>
+                    <span class="ml-3">系统设置</span>
+                </a>
+                <div class="border-t border-white border-opacity-20 my-4"></div>
+                <a href="/" class="sidebar-item flex items-center px-4 py-3 rounded-lg transition-all">
+                    <i class="fas fa-home w-6"></i>
+                    <span class="ml-3">返回首页</span>
+                </a>
+                <a href="#" onclick="logout()" class="sidebar-item flex items-center px-4 py-3 rounded-lg transition-all text-red-300 hover:text-red-200">
+                    <i class="fas fa-sign-out-alt w-6"></i>
+                    <span class="ml-3">退出登录</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="ml-64 flex-1 min-h-screen">
+            <!-- 顶部栏 -->
+            <header class="bg-white shadow-sm h-16 flex items-center justify-between px-8">
+                <div class="flex items-center">
+                    <h2 class="text-xl font-semibold text-gray-800" id="pageTitle">控制台</h2>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-500 text-sm">
+                        <i class="fas fa-clock mr-1"></i>
+                        <span id="currentTime"></span>
+                    </span>
+                </div>
+            </header>
+
+            <!-- 内容区域 -->
+            <div class="p-8">
+                <!-- 控制台概览 -->
+                <section id="section-dashboard" class="section-content">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow-sm p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500 text-sm">用户总数</p>
+                                    <p class="text-3xl font-bold text-gray-800 mt-1" id="statUsers">-</p>
+                                </div>
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500 text-sm">视频总数</p>
+                                    <p class="text-3xl font-bold text-gray-800 mt-1" id="statVideos">-</p>
+                                </div>
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-video text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500 text-sm">输出文件</p>
+                                    <p class="text-3xl font-bold text-gray-800 mt-1" id="statOutputs">-</p>
+                                </div>
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-file-video text-purple-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 用户活跃度统计图表 -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">用户活跃度统计（近7天）</h3>
+                        <div id="userActivityChart" style="width: 100%; height: 320px;"></div>
+                    </div>
+
+                    <!-- 快速操作 -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">快速操作</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <a href="/" class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                                <i class="fas fa-upload text-green-600 text-2xl mb-2"></i>
+                                <span class="text-sm text-gray-600">上传视频</span>
+                            </a>
+                            <a href="#" onclick="showSection('users')" class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                                <i class="fas fa-users-cog text-blue-600 text-2xl mb-2"></i>
+                                <span class="text-sm text-gray-600">用户管理</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="showSection('logs')" class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                                <i class="fas fa-clipboard-list text-purple-600 text-2xl mb-2"></i>
+                                <span class="text-sm text-gray-600">查看日志</span>
+                            </a>
+                            <a href="javascript:void(0)" onclick="showSection('settings')" class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                                <i class="fas fa-cog text-gray-600 text-2xl mb-2"></i>
+                                <span class="text-sm text-gray-600">系统设置</span>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 用户管理 -->
+                <section id="section-users" class="section-content hidden">
+                    <div class="bg-white rounded-xl shadow-sm">
+                        <div class="p-6 border-b">
+                            <h3 class="text-lg font-semibold text-gray-800">用户列表</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">用户名</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">邮箱</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">角色</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">注册时间</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">最后登录</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">状态</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200" id="usersTableBody">
+                                    <tr>
+                                        <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                                            <i class="fas fa-spinner fa-spin mr-2"></i>加载中...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 操作日志 -->
+                <section id="section-logs" class="section-content hidden">
+                    <div class="bg-white rounded-xl shadow-sm">
+                        <div class="p-6 border-b">
+                            <h3 class="text-lg font-semibold text-gray-800">操作日志</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">用户</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">详情</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">时间</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200" id="logsTableBody">
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                            <i class="fas fa-spinner fa-spin mr-2"></i>加载中...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 系统设置 -->
+                <section id="section-settings" class="section-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- 基本设置 -->
+                        <div class="bg-white rounded-xl shadow-sm">
+                            <div class="p-6 border-b">
+                                <h3 class="text-lg font-semibold text-gray-800">基本设置</h3>
+                            </div>
+                            <div class="p-6 space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">站点名称</label>
+                                    <input type="text" id="settingSiteName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="羽毛球视频智能剪辑系统">
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="settingAllowRegister" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                    <label for="settingAllowRegister" class="ml-2 text-sm text-gray-700">允许新用户注册</label>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">最大上传大小 (MB)</label>
+                                    <input type="number" id="settingMaxUploadSize" min="1" max="10240" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="2048">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">允许的视频格式（用逗号分隔）</label>
+                                    <input type="text" id="settingAllowedFormats" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="mp4,avi,mov,mkv,wmv">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 邮件服务设置 -->
+                        <div class="bg-white rounded-xl shadow-sm">
+                            <div class="p-6 border-b">
+                                <h3 class="text-lg font-semibold text-gray-800">邮件服务</h3>
+                            </div>
+                            <div class="p-6 space-y-4">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="settingEmailEnabled" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                    <label for="settingEmailEnabled" class="ml-2 text-sm text-gray-700">启用邮件服务</label>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">SMTP 服务器</label>
+                                    <input type="text" id="settingSmtpServer" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="smtp.gmail.com">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">SMTP 端口</label>
+                                    <input type="number" id="settingSmtpPort" min="1" max="65535" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="587">
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="settingUseTls" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                    <label for="settingUseTls" class="ml-2 text-sm text-gray-700">使用 TLS</label>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">发件人邮箱</label>
+                                    <input type="email" id="settingSenderEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="example@gmail.com">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">发件人密码 / 授权码</label>
+                                    <input type="password" id="settingSenderPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="不修改请留空">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">发件人名称</label>
+                                    <input type="text" id="settingSenderName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="羽毛球视频剪辑系统">
+                                </div>
+                                <div class="pt-2">
+                                    <button onclick="testEmailSettings()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all text-sm">
+                                        <i class="fas fa-paper-plane mr-1"></i>测试邮件连接
+                                    </button>
+                                    <span id="emailTestResult" class="ml-3 text-sm"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 保存按钮 -->
+                    <div class="mt-6 flex justify-end">
+                        <button onclick="saveSettings()" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg">
+                            <i class="fas fa-save mr-2"></i>保存设置
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script>
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = 
+                now.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // 显示指定区域
+        function showSection(section) {
+            // 隐藏所有区域
+            document.querySelectorAll('.section-content').forEach(el => el.classList.add('hidden'));
+            // 显示目标区域
+            document.getElementById('section-' + section).classList.remove('hidden');
+            
+            // 更新导航状态
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`[data-section="${section}"]`)?.classList.add('active');
+            
+            // 更新标题
+            const titles = { dashboard: '控制台', users: '用户管理', logs: '操作日志', settings: '系统设置' };
+            document.getElementById('pageTitle').textContent = titles[section] || '控制台';
+            
+            // 加载对应数据
+            if (section === 'users') loadUsers();
+            if (section === 'logs') loadLogs();
+            if (section === 'settings') loadSettings();
+        }
+
+        // 加载统计数据
+        function loadStats() {
+            axios.get('/admin/api/stats')
+                .then(res => {
+                    if (res.data.success) {
+                        document.getElementById('statUsers').textContent = res.data.stats.user_count;
+                        document.getElementById('statVideos').textContent = res.data.stats.video_count;
+                        document.getElementById('statOutputs').textContent = res.data.stats.output_count;
+                    }
+                })
+                .catch(err => console.error('加载统计失败:', err));
+        }
+
+        // 加载用户列表
+        function loadUsers() {
+            axios.get('/admin/users')
+                .then(res => {
+                    if (res.data.success) {
+                        const tbody = document.getElementById('usersTableBody');
+                        if (res.data.users.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-gray-500">暂无用户</td></tr>';
+                            return;
+                        }
+                        tbody.innerHTML = res.data.users.map(user => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.id}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${user.username}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.email || '-'}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs rounded-full ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}">
+                                        ${user.role === 'admin' ? '管理员' : '普通用户'}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.created_at ? new Date(user.created_at).toLocaleString('zh-CN') : '-'}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.last_login ? new Date(user.last_login).toLocaleString('zh-CN') : '从未登录'}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs rounded-full ${user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        ${user.is_active ? '正常' : '禁用'}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <button onclick="resetUserPassword(${user.id})"
+                                        class="text-yellow-600 hover:text-yellow-800 mr-3">
+                                        重置密码
+                                    </button>
+                                    <button onclick="toggleUserStatus(${user.id}, ${user.is_active ? 0 : 1})"
+                                        class="text-blue-600 hover:text-blue-800 mr-3">
+                                        ${user.is_active ? '禁用' : '启用'}
+                                    </button>
+                                    <button onclick="deleteUser(${user.id})"
+                                        class="text-red-600 hover:text-red-800">
+                                        删除
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+                })
+                .catch(err => console.error('加载用户失败:', err));
+        }
+
+        // 加载操作日志
+        function loadLogs() {
+            axios.get('/admin/logs')
+                .then(res => {
+                    if (res.data.success) {
+                        const tbody = document.getElementById('logsTableBody');
+                        if (res.data.logs.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">暂无日志</td></tr>';
+                            return;
+                        }
+                        tbody.innerHTML = res.data.logs.map(log => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${log.id}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${log.username || '系统'}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${log.action}</td>
+                                <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">${log.details || '-'}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(log.created_at).toLocaleString('zh-CN')}</td>
+                            </tr>
+                        `).join('');
+                    }
+                })
+                .catch(err => console.error('加载日志失败:', err));
+        }
+
+        // 切换用户状态
+        function toggleUserStatus(userId, newStatus) {
+            if (!confirm(newStatus ? '确定要禁用该用户吗？' : '确定要启用该用户吗？')) return;
+            
+            axios.put(`/admin/api/user/${userId}/status`, { is_active: newStatus })
+                .then(res => {
+                    if (res.data.success) {
+                        loadUsers();
+                        loadStats();
+                    }
+                })
+                .catch(err => alert('操作失败: ' + (err.response?.data?.error || err.message)));
+        }
+
+        // 删除用户
+        function deleteUser(userId) {
+            if (!confirm('确定要删除该用户吗？此操作不可恢复！')) return;
+
+            axios.delete(`/admin/api/user/${userId}`)
+                .then(res => {
+                    if (res.data.success) {
+                        loadUsers();
+                        loadStats();
+                    }
+                })
+                .catch(err => alert('删除失败: ' + (err.response?.data?.error || err.message)));
+        }
+
+        // 重置用户密码
+        function resetUserPassword(userId) {
+            const newPassword = prompt('请输入新密码（至少6个字符）：');
+            if (!newPassword) return;
+
+            if (newPassword.length < 6) {
+                alert('密码至少需要6个字符');
+                return;
+            }
+
+            const confirmPassword = prompt('请再次输入新密码：');
+            if (newPassword !== confirmPassword) {
+                alert('两次输入的密码不一致');
+                return;
+            }
+
+            axios.post(`/admin/api/user/${userId}/reset-password`, { new_password: newPassword })
+                .then(res => {
+                    if (res.data.success) {
+                        alert('密码重置成功！');
+                    }
+                })
+                .catch(err => alert('重置失败: ' + (err.response?.data?.error || err.message)));
+        }
+
+        // 加载系统设置
+        function loadSettings() {
+            axios.get('/admin/api/settings')
+                .then(res => {
+                    if (res.data.success) {
+                        const s = res.data.settings;
+                        document.getElementById('settingSiteName').value = s.site_name || '';
+                        document.getElementById('settingAllowRegister').checked = s.allow_register !== false;
+                        document.getElementById('settingMaxUploadSize').value = s.max_upload_size_mb || 2048;
+                        document.getElementById('settingAllowedFormats').value = (s.allowed_video_formats || []).join(',');
+                        if (s.email) {
+                            document.getElementById('settingEmailEnabled').checked = s.email.enabled || false;
+                            document.getElementById('settingSmtpServer').value = s.email.smtp_server || '';
+                            document.getElementById('settingSmtpPort').value = s.email.smtp_port || 587;
+                            document.getElementById('settingUseTls').checked = s.email.use_tls !== false;
+                            document.getElementById('settingSenderEmail').value = s.email.sender_email || '';
+                            document.getElementById('settingSenderName').value = s.email.sender_name || '';
+                            // 密码显示占位符
+                            document.getElementById('settingSenderPassword').value = s.email.sender_password || '';
+                        }
+                    }
+                })
+                .catch(err => console.error('加载设置失败:', err));
+        }
+
+        // 保存系统设置
+        function saveSettings() {
+            const settings = {
+                site_name: document.getElementById('settingSiteName').value.trim(),
+                allow_register: document.getElementById('settingAllowRegister').checked,
+                max_upload_size_mb: parseInt(document.getElementById('settingMaxUploadSize').value),
+                allowed_video_formats: document.getElementById('settingAllowedFormats').value.split(',').map(s => s.trim()).filter(Boolean),
+                email: {
+                    enabled: document.getElementById('settingEmailEnabled').checked,
+                    smtp_server: document.getElementById('settingSmtpServer').value.trim(),
+                    smtp_port: parseInt(document.getElementById('settingSmtpPort').value),
+                    use_tls: document.getElementById('settingUseTls').checked,
+                    sender_email: document.getElementById('settingSenderEmail').value.trim(),
+                    sender_password: document.getElementById('settingSenderPassword').value,
+                    sender_name: document.getElementById('settingSenderName').value.trim()
+                }
+            };
+
+            axios.post('/admin/api/settings', settings)
+                .then(res => {
+                    if (res.data.success) {
+                        alert('设置已保存');
+                        // 重新加载设置以同步状态
+                        loadSettings();
+                    } else {
+                        alert('保存失败: ' + (res.data.error || '未知错误'));
+                    }
+                })
+                .catch(err => alert('保存失败: ' + (err.response?.data?.error || err.message)));
+        }
+
+        // 测试邮件配置
+        function testEmailSettings() {
+            const resultEl = document.getElementById('emailTestResult');
+            resultEl.textContent = '测试中...';
+            resultEl.className = 'ml-3 text-sm text-gray-500';
+
+            axios.post('/admin/api/settings/test-email')
+                .then(res => {
+                    if (res.data.success) {
+                        resultEl.textContent = '连接成功';
+                        resultEl.className = 'ml-3 text-sm text-green-600';
+                    } else {
+                        resultEl.textContent = res.data.message || '连接失败';
+                        resultEl.className = 'ml-3 text-sm text-red-600';
+                    }
+                })
+                .catch(err => {
+                    resultEl.textContent = '测试异常: ' + (err.response?.data?.message || err.message);
+                    resultEl.className = 'ml-3 text-sm text-red-600';
+                });
+        }
+
+        // 退出登录
+        function logout() {
+            if (!confirm('确定要退出登录吗？')) return;
+            
+            axios.post('/api/logout')
+                .then(() => window.location.href = '/login')
+                .catch(() => window.location.href = '/login');
+        }
+
+        // 加载用户活跃度统计图表
+        function loadUserStats() {
+            axios.get('/admin/api/user-stats')
+                .then(res => {
+                    if (res.data.success) {
+                        const daily = res.data.daily;
+                        const dates = daily.map(d => d.date.slice(5)); // 显示 MM-DD
+                        const uploads = daily.map(d => d.videos_uploaded);
+                        const processes = daily.map(d => d.videos_processed);
+                        const logins = daily.map(d => d.login_count);
+
+                        const chart = echarts.init(document.getElementById('userActivityChart'));
+                        const option = {
+                            tooltip: {
+                                trigger: 'axis',
+                                axisPointer: { type: 'shadow' }
+                            },
+                            legend: {
+                                data: ['视频上传', '视频处理', '用户登录'],
+                                bottom: 0
+                            },
+                            grid: {
+                                left: '3%',
+                                right: '4%',
+                                bottom: '15%',
+                                top: '10%',
+                                containLabel: true
+                            },
+                            xAxis: {
+                                type: 'category',
+                                data: dates,
+                                axisLine: { lineStyle: { color: '#ccc' } },
+                                axisLabel: { color: '#666' }
+                            },
+                            yAxis: {
+                                type: 'value',
+                                minInterval: 1,
+                                axisLine: { show: false },
+                                splitLine: { lineStyle: { color: '#eee' } }
+                            },
+                            series: [
+                                {
+                                    name: '视频上传',
+                                    type: 'bar',
+                                    data: uploads,
+                                    itemStyle: { color: '#3b82f6', borderRadius: [4, 4, 0, 0] }
+                                },
+                                {
+                                    name: '视频处理',
+                                    type: 'bar',
+                                    data: processes,
+                                    itemStyle: { color: '#10b981', borderRadius: [4, 4, 0, 0] }
+                                },
+                                {
+                                    name: '用户登录',
+                                    type: 'line',
+                                    data: logins,
+                                    smooth: true,
+                                    itemStyle: { color: '#f59e0b' },
+                                    lineStyle: { width: 3 },
+                                    symbol: 'circle',
+                                    symbolSize: 8
+                                }
+                            ]
+                        };
+                        chart.setOption(option);
+
+                        // 响应式
+                        window.addEventListener('resize', () => chart.resize());
+                    }
+                })
+                .catch(err => console.error('加载用户统计失败:', err));
+        }
+
+        // 页面加载
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadUserStats();
+        });
+    </script>
+</body>
+</html>

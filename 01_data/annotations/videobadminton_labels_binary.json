@@ -1,0 +1,47 @@
+[
+  {
+    "video_name": "2022-08-30_18-10-55_dataset_set1_097_009208_009241_B_00",
+    "class": "round_start",
+    "class_id": 0,
+    "start_frame": 8,
+    "end_frame": 23,
+    "action_id": 1,
+    "source": "VideoBadminton"
+  },
+  {
+    "video_name": "2022-08-30_18-18-31_dataset_set1_049_004723_004755_A_00",
+    "class": "round_start",
+    "class_id": 0,
+    "start_frame": 8,
+    "end_frame": 23,
+    "action_id": 2,
+    "source": "VideoBadminton"
+  },
+  {
+    "video_name": "2022-08-30_18-27-08_dataset_set1_044_004166_004204_A_00",
+    "class": "round_start",
+    "class_id": 0,
+    "start_frame": 11,
+    "end_frame": 26,
+    "action_id": 3,
+    "source": "VideoBadminton"
+  },
+  {
+    "video_name": "2022-08-30_18-27-08_dataset_set1_050_004623_004657_A_00",
+    "class": "round_start",
+    "class_id": 0,
+    "start_frame": 9,
+    "end_frame": 24,
+    "action_id": 4,
+    "source": "VideoBadminton"
+  },
+  {
+    "video_name": "2022-08-30_18-27-08_dataset_set1_160_012422_012455_B_00",
+    "class": "round_start",
+    "class_id": 0,
+    "start_frame": 8,
+    "end_frame": 23,
+    "action_id": 5,
+    "source": "VideoBadminton"
+  }
+]

@@ -1,0 +1,89 @@
+# ========== 个人信息与敏感配置 ==========
+config/email_config.json
+config/system_settings.json
+
+# ========== 论文及个人文档（包含姓名等个人信息） ==========
+06_docs/xmut/
+06_docs/毕业论文.md
+06_docs/毕业设计（论文）任务书_已填写.docx
+06_docs/毕业设计开题报告.md
+06_docs/毕业设计任务书.md
+06_docs/毕业设计周志.md
+06_docs/答辩文档.md
+06_docs/答辩PPT_已修复.pptx
+06_docs/答辩PPT.pptx
+06_docs/答辩PPT大纲.md
+06_docs/格式要求6：毕业设计（论文）AI工具使用申明书.docx
+06_docs/傅松煌-基于动作识别的羽毛球比赛视频回合分割与批量剪辑系统的设计与实现.docx
+06_docs/外文文献翻译.md
+06_docs/文献综述.md
+06_docs/项目完成报告.md
+06_docs/*.doc
+06_docs/*.docx
+06_docs/*.pdf
+04_output/答辩问题回答.md
+
+# ========== 临时/解包文件 ==========
+temp/
+temp_unpacked_ai/
+06_docs/_fix_temp/
+06_docs/_temp_unpack/
+06_docs/unpacked/
+06_docs/fixed_unpacked/
+04_output/_fix_temp/
+04_output/_temp_unpack/
+04_output/fixed_unpacked/
+
+# ========== 大型二进制文件 ==========
+# 原始视频（太大）
+01_data/raw_videos/
+# 视频数据集
+01_data/VideoBadminton_Dataset/
+01_data/kaggle_shuttlecock/
+# 处理后的帧数据
+01_data/processed_frames/
+
+# 模型权重文件
+03_model/pretrained/
+03_model/trained/
+03_model/*.pt
+03_model/*.pth
+03_model/shuttlecock_yolov8n/
+
+# 视频剪辑输出
+04_output/clips/
+04_output/predictions/
+
+# ========== 数据库 ==========
+data/
+*.db
+
+# ========== Python ==========
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ========== Node.js ==========
+node_modules/
+*package-lock.json
+
+# ========== IDE ==========
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ========== OS ==========
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ========== 其他 ==========
+$null
+*.log
+.env

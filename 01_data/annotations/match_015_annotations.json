@@ -1,0 +1,23 @@
+{
+  "video_name": "match_015",
+  "total_frames": 421,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 131,
+      "end_frame": 151,
+      "description": "第15回合发球",
+      "notes": "正手发球，网前球"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 314,
+      "end_frame": 334,
+      "description": "第15回合球落地",
+      "notes": "球砸网落地"
+    }
+  ]
+}

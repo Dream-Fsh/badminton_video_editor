@@ -1,0 +1,22 @@
+{
+  "video_name": "match_024",
+  "total_frames": 478,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 174,
+      "end_frame": 194,
+      "description": "第24回合发球",
+      "notes": "部分遮挡，但可见击球动作"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 306,
+      "end_frame": 326,
+      "description": "第24回合球落地"
+    }
+  ]
+}

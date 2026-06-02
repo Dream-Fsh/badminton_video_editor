@@ -1,0 +1,180 @@
+# ========================================
+# 高速模式配置 - 优化速度
+# ========================================
+
+# -------------------- 模型训练配置 --------------------
+training:
+  batch_size: 1               # 批次大小（显存不足时设为1或2，4GB GPU 必须用1）
+  epochs: 30                  # 训练轮数（小数据集可适当增加）
+  learning_rate: 0.001        # 学习率（小数据集可用较高学习率，原0.0001偏低）
+  sequence_length: 16         # I3D输入的连续帧数量（原32，VideoBadminton短视频多，降低以适应）
+  num_classes: 2              # 分类数量（0: round_start发球, 1: round_end球落地）
+  train_split: 0.8            # 训练集比例（0.8表示80%训练，20%验证）
+  num_workers: 0              # 数据加载线程数（Windows建议设为0）
+
+# -------------------- 模型预测配置 --------------------
+prediction:
+  confidence_threshold: 0.1   # 保持较低阈值
+  sliding_window_stride: 16   # 步长16（原8），窗口重叠更少，速度提升2倍
+  batch_size: 1               # 预测批次大小
+  
+  # YOLO 运动员检测配置 (混合识别模式)
+  athlete_detection:
+    enabled: true             # 是否启用 YOLO 辅助识别
+    model_type: "yolov8n.pt"  # YOLO 模型版本 (n 为最快版)
+    person_class_id: 0        # COCO 数据集中人的类别 ID
+    
+    # 羽毛球检测配置（微调模型）
+    shuttlecock_detection:
+      enabled: true
+      model_path: "runs/detect/03_model/shuttlecock_yolov8n/weights/best.pt"
+      class_id: 0             # 微调模型的羽毛球类别ID
+      min_confidence: 0.3     # 最低检测置信度
+      sample_rate: 3          # 每3帧检测一次球（比运动员检测更频繁）
+      still_duration: 2     # 球静止多少秒判定为落地
+      still_threshold: 8.0    # 位置标准差阈值（像素），宽松一点避免漏检
+      vanish_duration: 1.5    # 球连续消失多少秒判定为下落（增大避免飞行中误判）
+    static_threshold: 15.0    # 位移阈值 (像素)，调大使静止判断更宽松
+    window_size: 10           # 判定静止的时间窗口 (帧数)
+    sample_rate: 2            # 每2帧检测一次，提高运动检测精度
+    
+    # 运动员检测约束
+    constraints:
+      min_player_count: 1     # 最少1人（支持单打）
+      min_player_confidence: 0.5
+      max_player_count: 2     # 最多2人
+      # 检测范围（建议禁用或设为全画面，避免过滤掉场地边缘的运动员）
+      court_boundary:
+        enabled: false    # 禁用，避免与绿色场地边界冲突
+        x_min: 0
+        x_max: 1280
+        y_min: 0
+        y_max: 720
+      # 绿色比赛场地边界（运动员离开此区域则回合无效）
+      # 注意：边界应覆盖整个有效比赛区域，包括网前和底线附近
+      # 视频分辨率 1280x720，扩大 x_max 以覆盖远端运动员
+      green_court_boundary:
+        enabled: true
+        x_min: 20
+        x_max: 1260
+        y_min: 50
+        y_max: 690
+  
+  # 运动员身份追踪配置（标记绿色场地上的2名主运动员，过滤无效回合）
+  athlete_identification:
+    enabled: true                  # 启用运动员身份追踪
+    max_detect_count: 4            # 检测最多的人数（需要>2才能识别"其他人"）
+    track_max_distance: 250        # 追踪匹配最大距离（像素），增大避免快速移动时丢失匹配
+    track_min_appearances: 5       # 成为主运动员的最低出现次数
+    merge_gap_frames: 30           # 碎片轨迹合并：两个轨迹最大间隔帧数（超过不合并）
+    merge_distance: 250            # 碎片轨迹合并：两个轨迹交界处最大空间距离（像素）
+
+  # 回合分割约束
+  round_constraints:
+    min_round_duration: 2.0
+    max_round_duration: 30.0
+    min_start_interval: 3.0
+    merge_interval: 2.0     # 合并间隔（秒），相邻回合间隔<2s则合并（避免同一回合被误切为多段）
+    merge_if_overlap: false  # 不合并重叠回合，避免误合并
+    max_round_end_search_time: 25.0
+    prefer_i3d_end: true
+    fallback_to_motion_stop: true
+    # 双人验证：回合期间必须有2名运动员同时在场上
+    # 注意：YOLO就位检测（ready_stance_detection）已确保左右站位，这里只需宽松验证
+    two_player_required_ratio: 0.15   # 进一步放宽，球员跑动/遮挡时YOLO常检测不到2人
+    two_player_at_start: false         # 允许回合开始时球员尚未全部入场
+    in_green_court_ratio: 0.50         # 最低要求50%帧有双人同框，过滤纯单人回合
+
+    # stance回合过滤阈值（YOLO就位检测已是强信号，过滤应极宽松）
+    stance_extra_people_ratio: 0.40    # 允许40%时间有额外人物（裁判/球童短暂入画）
+    stance_max_avg_people: 4.0         # 平均场地人数上限放宽到4人
+    stance_min_two_player_ratio: 0.50  # 只要求50%时间检测到2人（姿态检测已验证开始时有2人）
+    min_green_coverage: 0.03           # 绿色场地覆盖率硬下限：至少3%帧有≥2人在绿色场地
+    # 单人占比异常检测：回合中单人帧占比过高且无羽毛球检测 → 非对打场景
+    single_player_max_ratio: 0.80     # 单人帧占比超过80%时检查是否有shuttle检测
+
+    # 左右站位规则：两球员分居两侧且静止时，也判定为回合开始
+    # 警告：此规则容易误检！必须配合 min_round_motion_duration 使用
+    ready_stance_detection:
+      enabled: true                    # 是否启用左右站位检测
+      min_x_separation: 120.0          # 两球员中心X坐标最小间距（像素），提高到120减少误检
+      min_static_duration: 0.5         # 需要持续静止的最短时间（秒），提高到0.5秒
+      min_confidence: 0.6              # 该规则触发回合开始的置信度
+      # 允许轻微运动（不完全静止也算就位）
+      allow_minor_motion: true         # 允许球员有微小动作（如准备姿势的呼吸/重心调整）
+      motion_tolerance: 25.0           # 允许的最大运动量（像素/秒），超过才算"非静止"
+      # 位置稳定性检测（替代纯静止检测）
+      position_stability_window: 1.0   # 检测位置稳定性的时间窗口（秒）
+      max_position_drift: 40.0         # 窗口期内允许的最大位置偏移（像素）
+      # 关键：回合中必须包含足够的运动，否则视为误检
+      min_round_motion_duration: 0.5   # 回合中至少需要0.5秒的持续运动（击球过程）
+      motion_validation_skip_start: 2.0 # 验证运动时跳过开始后的前2秒（给球员就位→击球的时间）
+      max_static_gap_duration: 8.0     # 回合中最长允许连续静止8秒（超过则视为休息/非比赛场景）
+    
+    # ===== 回合时间缓冲配置 =====
+    start_pre_padding: 0.2            # 回合开始前缓冲秒数
+    end_post_padding: 0.8             # 回合结束后缓冲秒数
+
+# -------------------- 视频剪辑配置 --------------------
+video_editing:
+  round_extraction:
+    pre_padding: 10
+    post_padding: 10
+    min_round_duration: 2.0
+    max_round_duration: 120.0
+
+  # 绿色像素过滤：检测回合画面中是否包含绿色比赛场地
+  # 用于剔除误检的非比赛场景（如场边休息、其他活动等）
+  green_pixel_filter:
+    enabled: true                        # 是否启用绿色像素检测过滤
+    hsv_lower_h: 35                      # HSV-H下界（羽毛球场地绿色约35-85度）
+    hsv_lower_s: 40                      # HSV-S下界
+    hsv_lower_v: 40                      # HSV-V下界
+    hsv_upper_h: 85                      # HSV-H上界
+    hsv_upper_s: 255                     # HSV-S上界
+    hsv_upper_v: 255                     # HSV-V上界
+    min_green_ratio: 0.05                # 单帧绿色像素占比低于此值判定该帧无绿色
+    sample_rate: 30                      # 每30帧采样1帧（约1fps）
+    required_green_frame_ratio: 0.3     # 采样帧中至少30%含绿色，否则剔除回合
+
+  ffmpeg:
+    video_codec: "libx264"
+    audio_codec: "aac"
+    crf: 23
+    preset: "medium"
+    output_format: "mp4"
+system:
+  device: "auto"              # 自动选择设备（确保CUDA可用）
+  seed: 42
+  log_level: "INFO"
+  save_interval: 5
+
+# -------------------- 动作类别定义 --------------------
+action_classes:
+  0: "round_start"            # 发球动作
+  1: "round_end"              # 球落地动作
+
+# -------------------- 路径配置 --------------------
+paths:
+  raw_videos: "01_data/raw_videos"
+  processed_frames: "01_data/processed_frames"
+  annotations: "01_data/annotations"
+  merged_labels: "01_data/annotations/merged_labels.json"
+  pretrained_weights: "03_model/pretrained/rgb_imagenet.pt"
+  trained_models: "03_model/trained"
+  output_clips: "04_output/clips"
+  output_logs: "04_output/logs"
+  output_predictions: "04_output/predictions"
+
+# -------------------- 数据预处理配置 --------------------
+preprocessing:
+  frame_rate: 30
+  frame_size: null
+  frame_format: "jpg"
+  frame_quality: 95
+  roi:
+    enabled: true
+    x_offset: 165
+    y_offset: 0
+    width: 950
+    height: 720

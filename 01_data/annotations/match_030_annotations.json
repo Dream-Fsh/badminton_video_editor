@@ -1,0 +1,23 @@
+{
+  "video_name": "match_030",
+  "total_frames": 1431,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 133,
+      "end_frame": 153,
+      "description": "第30回合发球",
+      "notes": "俯视图，正手发球，网前球"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 1218,
+      "end_frame": 1238,
+      "description": "第30回合球落地",
+      "notes": "俯视图，球砸网落地"
+    }
+  ]
+}

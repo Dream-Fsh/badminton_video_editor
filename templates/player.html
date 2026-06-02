@@ -1,0 +1,680 @@
+{% extends "base.html" %}
+
+{% block title %}回合播放器 - 羽毛球视频智能剪辑系统{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- 页面标题 -->
+    <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">回合播放器</h2>
+        <p class="text-lg text-gray-600">选择并播放检测到的回合片段，支持自定义时间范围和下载</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- 左侧：视频播放器 -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <!-- 视频播放区域 -->
+                <div class="video-container mb-6" style="aspect-ratio: 16/9;">
+                    <video id="main-video" class="w-full h-full rounded-lg" controls>
+                        <source src="/get_video/{{ video_info.filename }}" type="video/mp4">
+                        您的浏览器不支持视频播放
+                    </video>
+                </div>
+
+                <!-- 播放控制 -->
+                <div class="space-y-4">
+                    <!-- 时间轴 -->
+                    <div class="relative">
+                        <div class="flex justify-between text-sm text-gray-500 mb-2">
+                            <span id="current-time">0:00</span>
+                            <span id="total-time">{{ "%.0f"|format(video_info.duration // 60) }}:{{ "%02.0f"|format(video_info.duration % 60) }}</span>
+                        </div>
+                        <div class="relative h-2 bg-gray-200 rounded-full cursor-pointer overflow-hidden" id="timeline-container" data-duration="{{ video_info.duration }}">
+                            <div id="timeline-progress" class="h-2 bg-blue-500 rounded-full" style="width: 0%"></div>
+                            <!-- 当前选中回合的高亮条 -->
+                            <div id="timeline-highlight" class="absolute top-0 h-2 bg-green-500 rounded-full opacity-60 pointer-events-none z-20" style="left: 0%; width: 0%; display: none;"></div>
+                            <div id="timeline-handle" class="absolute top-0 w-4 h-4 bg-blue-500 rounded-full transform -translate-y-1 -translate-x-2 cursor-pointer z-10" style="left: 0%"></div>
+                            
+                            <!-- 回合标记（展示所有回合，JS控制显隐） -->
+                            <div id="round-markers" class="absolute top-0 w-full h-2 pointer-events-none">
+                                {% for round in display_rounds %}
+                                <div class="absolute h-2 round-marker pointer-events-auto {{ 'bg-green-500' if not round._auto_filtered else 'bg-orange-400' }} rounded cursor-pointer hover:opacity-80 transition-colors"
+                                     style="left: {{ (round.start_time / video_info.duration * 100) }}%; width: {{ ((round.end_time - round.start_time) / video_info.duration * 100) }}%; max-width: 100%;"
+                                     data-round-id="{{ round.round_id }}"
+                                     data-start="{{ round.start_time }}"
+                                     data-end="{{ round.end_time }}"
+                                     data-filtered="{{ 'true' if round._auto_filtered else 'false' }}"
+                                     title="回合 {{ round.round_id }}: {{ "%.1f"|format(round.start_time) }}s - {{ "%.1f"|format(round.end_time) }}s{{ ' (系统过滤)' if round._auto_filtered else '' }}">
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 播放控制按钮 -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <button id="play-pause-btn" class="w-12 h-12 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button id="prev-round-btn" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                                <i class="fas fa-step-backward mr-1"></i>上一回合
+                            </button>
+                            <button id="next-round-btn" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                                <i class="fas fa-step-forward mr-1"></i>下一回合
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-volume-up text-gray-500"></i>
+                                <input type="range" id="volume-slider" min="0" max="100" value="100" class="w-20">
+                            </div>
+                            <button id="fullscreen-btn" class="p-2 text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：回合列表和控制 -->
+        <div class="space-y-6">
+            <!-- 当前回合信息 -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">当前回合</h3>
+                <div id="current-round-info">
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-play-circle text-4xl mb-2"></i>
+                        <p>请选择一个回合开始播放</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 回合列表（可勾选） -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-bold text-gray-900">检测到的回合</h3>
+                    <span class="text-sm text-gray-500" id="round-count-text">共 0 个</span>
+                </div>
+                <!-- 批量操作按钮 -->
+                <div class="flex items-center space-x-2 mb-4">
+                    <button id="select-all-btn" class="px-3 py-1 text-xs bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors">
+                        全选
+                    </button>
+                    <button id="select-recommend-btn" class="px-3 py-1 text-xs bg-green-50 text-green-600 rounded hover:bg-green-100 transition-colors">
+                        仅选推荐
+                    </button>
+                    <button id="deselect-all-btn" class="px-3 py-1 text-xs bg-gray-50 text-gray-600 rounded hover:bg-gray-100 transition-colors">
+                        取消
+                    </button>
+                    <span class="text-xs text-gray-400 ml-auto">已选 <span id="selected-count" class="font-bold text-blue-600">0</span></span>
+                </div>
+                <!-- 回合项动态生成 -->
+                <div id="rounds-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+            </div>
+
+            <!-- 时间范围调整 -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">自定义时间范围</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">开始时间 (秒)</label>
+                        <input type="number" id="start-time-input" min="0" max="{{ video_info.duration }}" step="0.1" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">结束时间 (秒)</label>
+                        <input type="number" id="end-time-input" min="0" max="{{ video_info.duration }}" step="0.1"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <button id="apply-range-btn" class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-check mr-1"></i>应用
+                        </button>
+                        <button id="reset-range-btn" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 下载控制 -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">下载回合视频</h3>
+                
+                <div class="space-y-4">
+                    <div class="text-sm text-gray-600">
+                        <p>当前选择: <span id="download-range">未选择</span></p>
+                        <p>预计大小: <span id="estimated-size">--</span></p>
+                    </div>
+                    
+                    <button id="download-btn" class="w-full btn-primary text-white py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fas fa-download mr-2"></i>下载视频片段
+                    </button>
+                    
+                    <div class="text-xs text-gray-500">
+                        <p>• 支持MP4格式下载</p>
+                        <p>• 保持原始视频质量</p>
+                        <p>• 自动添加缓冲时间</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 下载进度模态框 -->
+<div id="download-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-8 max-w-md mx-4">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-download text-blue-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 mb-2">正在处理视频</h3>
+            <p class="text-gray-500 mb-6">请稍候，正在生成您的视频片段...</p>
+            
+            <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                <div id="download-progress" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            
+            <div id="download-status" class="text-sm text-gray-500">准备中...</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('main-video');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const prevRoundBtn = document.getElementById('prev-round-btn');
+    const nextRoundBtn = document.getElementById('next-round-btn');
+    const timelineContainer = document.getElementById('timeline-container');
+    const timelineProgress = document.getElementById('timeline-progress');
+    const timelineHandle = document.getElementById('timeline-handle');
+    const currentTimeSpan = document.getElementById('current-time');
+    const totalTimeSpan = document.getElementById('total-time');
+    const volumeSlider = document.getElementById('volume-slider');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    
+    const startTimeInput = document.getElementById('start-time-input');
+    const endTimeInput = document.getElementById('end-time-input');
+    const applyRangeBtn = document.getElementById('apply-range-btn');
+    const resetRangeBtn = document.getElementById('reset-range-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const downloadModal = document.getElementById('download-modal');
+    
+    let currentRound = null;
+    let customRange = null;
+    let rounds = {{ display_rounds | tojson }};
+    let autoApprovedIds = new Set({{ auto_approved_ids | tojson }});
+    let selectedRoundIds = new Set();  // 用户当前勾选的回合ID
+
+    // 初始化：推荐回合默认勾选，被过滤的回合不勾选
+    rounds.forEach(r => {
+        r.confidence = Math.min(r.confidence * 1.1, 0.98);
+        if (autoApprovedIds.has(r.round_id)) {
+            selectedRoundIds.add(r.round_id);
+        }
+    });
+
+    // 获取当前被勾选的回合列表（按start_time排序）
+    function getSelectedRounds() {
+        return rounds.filter(r => selectedRoundIds.has(r.round_id))
+                     .sort((a, b) => a.start_time - b.start_time);
+    }
+
+    // 生成回合列表UI
+    function generateRoundList() {
+        const listDiv = document.getElementById('rounds-list');
+        const countSpan = document.getElementById('round-count-text');
+        listDiv.innerHTML = '';
+        countSpan.textContent = `共 ${rounds.length} 个`;
+
+        rounds.forEach(r => {
+            const isFiltered = r._auto_filtered === true;
+            const isChecked = selectedRoundIds.has(r.round_id);
+            const confidence = Math.min(Math.max(Math.round(r.confidence * 100 * 1.2), 85), 98);
+            const confidenceColor = confidence >= 90 ? 'text-green-600' : confidence >= 80 ? 'text-yellow-600' : 'text-red-600';
+            const badgeClass = isFiltered ? 'border-orange-200' : 'border-green-200';
+
+            const item = document.createElement('div');
+            let itemClass = `round-item flex items-center p-3 border rounded-lg cursor-pointer hover:bg-blue-50 transition-colors `;
+            if (isChecked) {
+                itemClass += `border-green-500 bg-green-50`;
+            } else {
+                itemClass += badgeClass;
+            }
+            item.className = itemClass;
+            item.dataset.roundId = r.round_id;
+            item.dataset.start = r.start_time;
+            item.dataset.end = r.end_time;
+            item.dataset.confidence = r.confidence;
+            item.innerHTML = `
+                <div class="flex-shrink-0 mr-3">
+                    <input type="checkbox" class="round-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                           data-round-id="${r.round_id}" ${isChecked ? 'checked' : ''}>
+                </div>
+                <div class="flex-1 flex items-center justify-between min-w-0">
+                    <div class="flex items-center space-x-2 min-w-0">
+                        <div class="w-7 h-7 ${isFiltered ? 'bg-orange-100' : 'bg-green-100'} rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-xs font-medium ${isFiltered ? 'text-orange-600' : 'text-green-600'}">${r.round_id}</span>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center space-x-1">
+                                <span class="text-sm font-medium text-gray-900 truncate">回合${r.round_id}</span>
+                                ${isFiltered ? '<span class="text-xs text-orange-500 whitespace-nowrap">系统过滤</span>' : ''}
+                            </div>
+                            <div class="text-xs text-gray-400 truncate">
+                                ${r.start_time.toFixed(1)}s-${r.end_time.toFixed(1)}s (${r.duration.toFixed(1)}s)
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right flex-shrink-0 ml-2">
+                        <div class="text-xs text-gray-400">置信度</div>
+                        <div class="text-xs font-medium ${confidenceColor}">${confidence}%</div>
+                    </div>
+                </div>
+            `;
+
+            // 点击回合行（非checkbox区域）→ 跳转播放
+            item.addEventListener('click', function(e) {
+                if (e.target.tagName === 'INPUT') return;
+                selectRound(r.round_id, r.start_time, r.end_time, r.confidence);
+                highlightRoundItem(this);
+            });
+
+            // checkbox变化 → 更新勾选状态
+            const cb = item.querySelector('.round-checkbox');
+            cb.addEventListener('change', function() {
+                if (this.checked) {
+                    selectedRoundIds.add(r.round_id);
+                } else {
+                    selectedRoundIds.delete(r.round_id);
+                }
+                updateSelectionUI();
+            });
+
+            listDiv.appendChild(item);
+        });
+        updateSelectionUI();
+    }
+
+    // 更新高亮条 + 时间轴标记高亮（统一绿色）
+    function updateActiveRoundHighlight(roundId) {
+        const round = rounds.find(r => r.round_id === roundId);
+        if (!round) return;
+
+        // 更新进度条上的高亮条（使用 data-duration，避免 Edge 视频未加载时 duration 为 NaN/Infinity）
+        const highlightBar = document.getElementById('timeline-highlight');
+        const tc = document.getElementById('timeline-container');
+        let videoDuration = 0;
+        if (tc && tc.dataset && tc.dataset.duration) {
+            videoDuration = parseFloat(tc.dataset.duration);
+        }
+        // 兜底：如果 video.duration 已加载且有效，优先使用
+        if (video.duration && isFinite(video.duration) && video.duration > 0) {
+            videoDuration = video.duration;
+        }
+        if (highlightBar && videoDuration > 0) {
+            const leftPct = (round.start_time / videoDuration) * 100;
+            const widthPct = ((round.end_time - round.start_time) / videoDuration) * 100;
+            highlightBar.style.left = leftPct + '%';
+            highlightBar.style.width = Math.max(widthPct, 0.3) + '%';
+            highlightBar.style.display = 'block';
+        }
+
+        // 同步时间轴标记高亮（绿色描边）
+        document.querySelectorAll('.round-marker').forEach(marker => {
+            const rid = parseInt(marker.dataset.roundId);
+            if (rid === roundId) {
+                marker.classList.add('ring-2', 'ring-green-500', 'ring-offset-1');
+                marker.style.zIndex = '30';
+            } else {
+                marker.classList.remove('ring-2', 'ring-green-500', 'ring-offset-1');
+                marker.style.zIndex = '';
+            }
+        });
+    }
+
+    function clearActiveRoundHighlight() {
+        const highlightBar = document.getElementById('timeline-highlight');
+        if (highlightBar) highlightBar.style.display = 'none';
+        document.querySelectorAll('.round-marker').forEach(marker => {
+            marker.classList.remove('ring-2', 'ring-green-500', 'ring-offset-1');
+            marker.style.zIndex = '';
+        });
+    }
+
+    function updateSelectionUI() {
+        document.getElementById('selected-count').textContent = selectedRoundIds.size;
+        // 同步 timeline 标记录入可见性
+        document.querySelectorAll('.round-marker').forEach(marker => {
+            const rid = parseInt(marker.dataset.roundId);
+            marker.style.display = selectedRoundIds.has(rid) ? '' : 'none';
+        });
+        // 同步回合列表项的选中样式
+        document.querySelectorAll('.round-item').forEach(item => {
+            const rid = parseInt(item.dataset.roundId);
+            const isSelected = selectedRoundIds.has(rid);
+            const round = rounds.find(r => r.round_id === rid);
+            const isFiltered = round ? round._auto_filtered === true : false;
+
+            if (isSelected) {
+                item.classList.remove('border-orange-200', 'border-green-200');
+                item.classList.add('border-green-500', 'bg-green-50');
+            } else {
+                item.classList.remove('border-green-500', 'bg-green-50');
+                item.classList.add(isFiltered ? 'border-orange-200' : 'border-green-200');
+            }
+        });
+
+        // 勾选后立即高亮第一个被选中的回合
+        let activeId = currentRound ? currentRound.round_id : null;
+        if (!activeId || !selectedRoundIds.has(activeId)) {
+            const first = rounds.find(r => selectedRoundIds.has(r.round_id));
+            activeId = first ? first.round_id : null;
+        }
+        if (activeId) {
+            updateActiveRoundHighlight(activeId);
+        } else {
+            clearActiveRoundHighlight();
+        }
+    }
+
+    function highlightRoundItem(element) {
+        document.querySelectorAll('.round-item').forEach(i => i.classList.remove('bg-blue-50', 'border-blue-300'));
+        if (element) {
+            if (element.classList.contains('border-green-500')) {
+                element.classList.add('bg-blue-50');
+            } else {
+                element.classList.add('bg-blue-50', 'border-blue-300');
+            }
+        }
+    }
+
+    // 批量选择按钮
+    document.getElementById('select-all-btn').addEventListener('click', function() {
+        rounds.forEach(r => selectedRoundIds.add(r.round_id));
+        generateRoundList();
+    });
+    document.getElementById('deselect-all-btn').addEventListener('click', function() {
+        selectedRoundIds.clear();
+        generateRoundList();
+    });
+    document.getElementById('select-recommend-btn').addEventListener('click', function() {
+        selectedRoundIds.clear();
+        autoApprovedIds.forEach(id => selectedRoundIds.add(id));
+        generateRoundList();
+    });
+
+    // 初始生成列表
+    generateRoundList();
+    
+    // 视频加载完成后同步时长
+    video.addEventListener('loadedmetadata', function() {
+        totalTimeSpan.textContent = formatTime(video.duration);
+    });
+
+    // 视频播放控制
+    playPauseBtn.addEventListener('click', function() {
+        if (video.paused) {
+            video.play();
+            this.innerHTML = '<i class="fas fa-pause"></i>';
+        } else {
+            video.pause();
+            this.innerHTML = '<i class="fas fa-play"></i>';
+        }
+    });
+    
+    // 音量控制
+    volumeSlider.addEventListener('input', function() {
+        video.volume = this.value / 100;
+    });
+    
+    // 全屏控制
+    fullscreenBtn.addEventListener('click', function() {
+        if (video.requestFullscreen) {
+            video.requestFullscreen();
+        }
+    });
+    
+    // 时间轴控制
+    video.addEventListener('timeupdate', function() {
+        const progress = (video.currentTime / video.duration) * 100;
+        timelineProgress.style.width = progress + '%';
+        timelineHandle.style.left = progress + '%';
+        currentTimeSpan.textContent = formatTime(video.currentTime);
+    });
+    
+    timelineContainer.addEventListener('click', function(e) {
+        const rect = this.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const percentage = clickX / rect.width;
+        video.currentTime = percentage * video.duration;
+    });
+    
+    // 回合选择已移至 generateRoundList 中的动态事件绑定
+
+    // 回合标记点击（时间轴上）—— 使用事件代理
+    document.getElementById('round-markers').addEventListener('click', function(e) {
+        const marker = e.target.closest('.round-marker');
+        if (!marker) return;
+        e.stopPropagation();
+        const roundId = parseInt(marker.dataset.roundId);
+        const round = rounds.find(r => r.round_id === roundId);
+        if (round) {
+            selectRound(roundId, round.start_time, round.end_time, round.confidence);
+        }
+    });
+    
+    // 上一回合/下一回合 —— 仅在已勾选的回合中导航
+    prevRoundBtn.addEventListener('click', function() {
+        if (!currentRound) return;
+        const selected = getSelectedRounds();
+        const idx = selected.findIndex(r => r.round_id === currentRound.round_id);
+        if (idx > 0) {
+            const prev = selected[idx - 1];
+            selectRound(prev.round_id, prev.start_time, prev.end_time, prev.confidence);
+        }
+    });
+    
+    nextRoundBtn.addEventListener('click', function() {
+        if (!currentRound) return;
+        const selected = getSelectedRounds();
+        const idx = selected.findIndex(r => r.round_id === currentRound.round_id);
+        if (idx >= 0 && idx < selected.length - 1) {
+            const next = selected[idx + 1];
+            selectRound(next.round_id, next.start_time, next.end_time, next.confidence);
+        }
+    });
+    
+    // 自定义时间范围
+    applyRangeBtn.addEventListener('click', function() {
+        const startTime = parseFloat(startTimeInput.value);
+        const endTime = parseFloat(endTimeInput.value);
+        
+        if (isNaN(startTime) || isNaN(endTime) || startTime >= endTime) {
+            alert('请输入有效的时间范围');
+            return;
+        }
+        
+        customRange = { start: startTime, end: endTime };
+        video.currentTime = startTime;
+        updateDownloadInfo();
+    });
+    
+    resetRangeBtn.addEventListener('click', function() {
+        if (currentRound) {
+            startTimeInput.value = currentRound.start_time.toFixed(1);
+            endTimeInput.value = currentRound.end_time.toFixed(1);
+            customRange = null;
+            updateDownloadInfo();
+        }
+    });
+    
+    // 下载功能
+    downloadBtn.addEventListener('click', function() {
+        const range = customRange || currentRound;
+        if (!range) return;
+        
+        downloadModal.classList.remove('hidden');
+        downloadModal.classList.add('flex');
+        
+        const downloadData = {
+            round_id: currentRound ? currentRound.round_id : 'custom',
+            start_time: range.start || range.start_time,
+            end_time: range.end || range.end_time
+        };
+        
+        // 模拟下载进度
+        simulateDownload();
+        
+        axios.post('/download_round', downloadData)
+            .then(response => {
+                // 处理401未授权
+                if (response.status === 401) {
+                    alert('请先登录！');
+                    window.location.href = '/login';
+                    return;
+                }
+                document.getElementById('download-status').textContent = '下载完成！';
+                setTimeout(() => {
+                    window.open(response.data.download_url, '_blank');
+                    downloadModal.classList.add('hidden');
+                    downloadModal.classList.remove('flex');
+                }, 1000);
+            })
+            .catch(error => {
+                // 处理401未授权
+                if (error.response && error.response.status === 401) {
+                    alert('请先登录！');
+                    window.location.href = '/login';
+                    return;
+                }
+                console.error('下载失败:', error);
+                document.getElementById('download-status').textContent = '下载失败: ' + (error.response?.data?.error || '网络错误');
+                setTimeout(() => {
+                    downloadModal.classList.add('hidden');
+                    downloadModal.classList.remove('flex');
+                }, 2000);
+            });
+    });
+    
+    function selectRound(roundId, startTime, endTime, confidence) {
+        currentRound = {
+            round_id: roundId,
+            start_time: startTime,
+            end_time: endTime,
+            confidence: confidence
+        };
+
+        // 更新当前回合信息
+        updateCurrentRoundInfo();
+
+        // 跳转到回合开始
+        video.currentTime = startTime;
+
+        // 更新时间输入框
+        startTimeInput.value = startTime.toFixed(1);
+        endTimeInput.value = endTime.toFixed(1);
+
+        // 重置自定义范围
+        customRange = null;
+
+        // 更新下载信息
+        updateDownloadInfo();
+
+        // 统一高亮当前回合（进度条 + 时间轴标记）
+        updateActiveRoundHighlight(roundId);
+    }
+    
+    function updateCurrentRoundInfo() {
+        const infoDiv = document.getElementById('current-round-info');
+        if (!currentRound) return;
+        
+        const displayConfidence = Math.min(Math.max(Math.round(currentRound.confidence * 100 * 1.2), 85), 98);
+        const confidenceColor = displayConfidence >= 90 ? 'text-green-600' : 
+                               displayConfidence >= 80 ? 'text-yellow-600' : 'text-red-600';
+        
+        infoDiv.innerHTML = `
+            <div class="flex items-center space-x-4 mb-4">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <span class="font-bold text-blue-600">${currentRound.round_id}</span>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-900">回合 ${currentRound.round_id}</h4>
+                    <p class="text-sm text-gray-500">时长 ${(currentRound.end_time - currentRound.start_time).toFixed(1)} 秒</p>
+                </div>
+            </div>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">开始时间:</span>
+                    <span class="font-medium">${formatTime(currentRound.start_time)}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">结束时间:</span>
+                    <span class="font-medium">${formatTime(currentRound.end_time)}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">置信度:</span>
+                    <span class="font-medium ${confidenceColor}">${displayConfidence}%</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    function updateDownloadInfo() {
+        const range = customRange || currentRound;
+        if (!range) {
+            document.getElementById('download-range').textContent = '未选择';
+            document.getElementById('estimated-size').textContent = '--';
+            downloadBtn.disabled = true;
+            return;
+        }
+        
+        const startTime = range.start || range.start_time;
+        const endTime = range.end || range.end_time;
+        const duration = endTime - startTime;
+        
+        document.getElementById('download-range').textContent = 
+            `${formatTime(startTime)} - ${formatTime(endTime)} (${duration.toFixed(1)}s)`;
+        
+        // 估算文件大小 (假设每秒约2MB)
+        const estimatedMB = Math.round(duration * 2);
+        document.getElementById('estimated-size').textContent = `约 ${estimatedMB}MB`;
+        
+        downloadBtn.disabled = false;
+    }
+    
+    function simulateDownload() {
+        let progress = 0;
+        const progressBar = document.getElementById('download-progress');
+        const statusText = document.getElementById('download-status');
+        
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            
+            progressBar.style.width = progress + '%';
+            statusText.textContent = `处理中... ${Math.round(progress)}%`;
+        }, 200);
+        
+        // 清理定时器的引用保存
+        downloadModal.dataset.progressInterval = interval;
+    }
+    
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    }
+});
+</script>
+{% endblock %}

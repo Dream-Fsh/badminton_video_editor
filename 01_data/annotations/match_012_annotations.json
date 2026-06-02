@@ -1,0 +1,23 @@
+{
+  "video_name": "match_012",
+  "total_frames": 872,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 114,
+      "end_frame": 134,
+      "description": "第12回合发球",
+      "notes": "正手发球，网前球",
+       "difficulty": "easy"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 802,
+      "end_frame": 822,
+      "description": "第12回合球落地"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "video_name": "match_013",
+  "total_frames": 815,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 177,
+      "end_frame": 197,
+      "description": "第13回合发球",
+      "notes": "正手发球，网前球"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 669,
+      "end_frame": 689,
+      "description": "第13回合球落地"
+    }
+  ]
+}

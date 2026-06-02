@@ -1,0 +1,22 @@
+{
+  "video_name": "match_010",
+  "total_frames": 1151,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 199,
+      "end_frame": 219,
+      "description": "第10回合发球",
+      "notes": "部分遮挡，但可见击球动作"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 871,
+      "end_frame": 891,
+      "description": "第10回合球落地"
+    }
+  ]
+}

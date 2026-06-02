@@ -1,0 +1,22 @@
+{
+  "video_name": "match_034",
+  "total_frames": 431,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 67,
+      "end_frame": 87,
+      "description": "第34回合发球",
+      "notes": "正手发球，网前球"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 235,
+      "end_frame": 255,
+      "description": "第34回合球落地"
+    }
+  ]
+}

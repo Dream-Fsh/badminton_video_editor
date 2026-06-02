@@ -1,0 +1,23 @@
+{
+  "video_name": "match_031",
+  "total_frames": 500,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 135,
+      "end_frame": 155,
+      "description": "第31回合发球",
+      "notes": "正手发球，网前球"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 356,
+      "end_frame": 376,
+      "description": "第31回合球落地",
+      "notes": "球落地，被遮掩"
+    }
+  ]
+}

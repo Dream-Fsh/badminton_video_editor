@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - 羽毛球视频智能剪辑系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .register-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center py-8">
+    <div class="register-card rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
+        <!-- Logo区域 -->
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-user-plus text-white text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">用户注册</h1>
+            <p class="text-gray-500 mt-2">加入羽毛球视频智能剪辑系统</p>
+        </div>
+
+        <!-- 注册表单 -->
+        <form id="registerForm" class="space-y-5">
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-2">
+                    <i class="fas fa-user mr-2 text-gray-400"></i>用户名
+                </label>
+                <input type="text" id="username" name="username" required
+                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all outline-none"
+                    placeholder="3-20个字符，用户名唯一" minlength="3" maxlength="20">
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-2">
+                    <i class="fas fa-envelope mr-2 text-gray-400"></i>邮箱
+                </label>
+                <input type="email" id="email" name="email" required
+                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all outline-none"
+                    placeholder="用于找回密码">
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-2">
+                    <i class="fas fa-lock mr-2 text-gray-400"></i>密码
+                </label>
+                <div class="relative">
+                    <input type="password" id="password" name="password" required
+                        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all outline-none pr-12"
+                        placeholder="至少6个字符" minlength="6">
+                    <button type="button" onclick="togglePassword('password', 'eyeIcon1')" 
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-eye" id="eyeIcon1"></i>
+                    </button>
+                </div>
+                <!-- 密码强度指示 -->
+                <div class="mt-2">
+                    <div class="flex gap-1">
+                        <div id="strength1" class="password-strength flex-1 bg-gray-200"></div>
+                        <div id="strength2" class="password-strength flex-1 bg-gray-200"></div>
+                        <div id="strength3" class="password-strength flex-1 bg-gray-200"></div>
+                        <div id="strength4" class="password-strength flex-1 bg-gray-200"></div>
+                    </div>
+                    <p id="strengthText" class="text-xs text-gray-400 mt-1">密码强度：未检测</p>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-medium mb-2">
+                    <i class="fas fa-lock mr-2 text-gray-400"></i>确认密码
+                </label>
+                <div class="relative">
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all outline-none pr-12"
+                        placeholder="再次输入密码">
+                    <button type="button" onclick="togglePassword('confirmPassword', 'eyeIcon2')" 
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-eye" id="eyeIcon2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 错误提示 -->
+            <div id="errorMsg" class="hidden bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <span id="errorText"></span>
+            </div>
+
+            <!-- 成功提示 -->
+            <div id="successMsg" class="hidden bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm">
+                <i class="fas fa-check-circle mr-2"></i>
+                <span id="successText"></span>
+            </div>
+
+            <button type="submit" id="submitBtn"
+                class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] flex items-center justify-center">
+                <span id="btnText">注 册</span>
+                <i class="fas fa-spinner fa-spin ml-2 hidden" id="loadingIcon"></i>
+            </button>
+        </form>
+
+        <!-- 登录链接 -->
+        <div class="mt-6 text-center">
+            <p class="text-gray-500 text-sm">
+                已有账户？
+                <a href="/login" class="text-green-600 hover:text-green-700 font-medium">立即登录</a>
+            </p>
+        </div>
+
+        <!-- 返回首页 -->
+        <div class="mt-4 text-center">
+            <a href="/" class="text-gray-400 hover:text-gray-600 text-sm">
+                <i class="fas fa-home mr-1"></i>返回首页
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // 密码显示/隐藏切换
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+
+        // 密码强度检测
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            
+            if (password.length >= 6) strength++;
+            if (password.length >= 10) strength++;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+            
+            return Math.min(strength, 4);
+        }
+
+        function updateStrengthIndicator(strength) {
+            const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
+            const texts = ['弱', '中等', '良好', '强'];
+            
+            for (let i = 1; i <= 4; i++) {
+                const bar = document.getElementById('strength' + i);
+                if (i <= strength) {
+                    bar.className = 'password-strength flex-1 ' + colors[strength - 1];
+                } else {
+                    bar.className = 'password-strength flex-1 bg-gray-200';
+                }
+            }
+            
+            document.getElementById('strengthText').textContent = 
+                strength > 0 ? '密码强度：' + texts[strength - 1] : '密码强度：未检测';
+        }
+
+        document.getElementById('password').addEventListener('input', function() {
+            updateStrengthIndicator(checkPasswordStrength(this.value));
+        });
+
+        // 表单提交
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // 隐藏之前的消息
+            document.getElementById('errorMsg').classList.add('hidden');
+            document.getElementById('successMsg').classList.add('hidden');
+            
+            // 验证密码确认
+            if (password !== confirmPassword) {
+                document.getElementById('errorMsg').classList.remove('hidden');
+                document.getElementById('errorText').textContent = '两次输入的密码不一致';
+                return;
+            }
+            
+            // 显示加载状态
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('btnText').textContent = '注册中...';
+            document.getElementById('loadingIcon').classList.remove('hidden');
+            
+            try {
+                const response = await axios.post('/api/register', {
+                    username: username,
+                    password: password,
+                    email: email
+                });
+                
+                if (response.data.success) {
+                    document.getElementById('successMsg').classList.remove('hidden');
+                    document.getElementById('successText').textContent = response.data.message + ' 正在跳转到登录页面...';
+                    
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 1500);
+                }
+            } catch (error) {
+                document.getElementById('errorMsg').classList.remove('hidden');
+                document.getElementById('errorText').textContent = error.response?.data?.error || '注册失败，请稍后重试';
+            } finally {
+                document.getElementById('submitBtn').disabled = false;
+                document.getElementById('btnText').textContent = '注 册';
+                document.getElementById('loadingIcon').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "video_name": "match_020",
+  "total_frames": 517,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 183,
+      "end_frame": 203,
+      "description": "第20回合发球",
+      "notes": "部分遮挡，但可见击球动作",
+      "quality": "fair"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 370,
+      "end_frame": 390,
+      "description": "第20回合球落地",
+      "notes": "扣杀",
+      "quality": "good"
+    }
+  ]
+}

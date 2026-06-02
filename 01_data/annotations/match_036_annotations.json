@@ -1,0 +1,24 @@
+{
+  "video_name": "match_036",
+  "total_frames": 1520,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 297,
+      "end_frame": 317,
+      "description": "第36回合发球",
+      "notes": "部分遮挡，但可见击球动作",
+      "quality": "fair"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 1387,
+      "end_frame": 1407,
+      "description": "第36回合球落地",
+      "notes": "球速过快落地，但可见球落地"
+    }
+  ]
+}

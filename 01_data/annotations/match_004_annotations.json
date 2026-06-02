@@ -1,0 +1,24 @@
+{
+  "video_name": "match_004",
+  "total_frames": 541,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 255,
+      "end_frame": 275,
+      "description": "第4回合发球",
+      "notes": "部分遮挡，但可见击球动作"
+
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 457,
+      "end_frame": 477,
+      "description": "第4回合球落地",
+      "notes": "球速过快落地，但可见球落地"
+    }
+  ]
+}

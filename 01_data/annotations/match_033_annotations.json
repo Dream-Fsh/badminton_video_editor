@@ -1,0 +1,22 @@
+{
+  "video_name": "match_033",
+  "total_frames": 582,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 193,
+      "end_frame": 213,
+      "description": "第33回合发球",
+      "notes": "正手发球，网前球"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 424,
+      "end_frame": 444,
+      "description": "第33回合球落地"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "video_name": "match_017",
+  "total_frames": 605,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 132,
+      "end_frame": 152,
+      "description": "第17回合发球",
+      "notes": "部分遮挡，但可见击球动作"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 379,
+      "end_frame": 399,
+      "description": "第17回合球落地",
+      "notes": "球落地，出界"
+    }
+  ]
+}

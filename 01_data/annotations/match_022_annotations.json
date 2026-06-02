@@ -1,0 +1,24 @@
+{
+  "video_name": "match_022",
+  "total_frames": 861,
+  "frame_rate": 60,
+  "annotations": [
+    {
+      "action_id": 1,
+      "class": "round_start",
+      "start_frame": 425,
+      "end_frame": 445,
+      "description": "第22回合发球",
+      "notes": "部分遮挡，但可见击球动作",
+      "quality": "fair"
+    },
+    {
+      "action_id": 2,
+      "class": "round_end",
+      "start_frame": 659,
+      "end_frame": 679,
+      "description": "第22回合球落地",
+      "notes": "球砸网落地"
+    }
+  ]
+}
